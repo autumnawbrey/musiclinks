@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autumn Awbrey — Access Nodes</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/aaaakshat/cm-web-fonts@latest/fonts.css">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0d0b12;
+      font-family: "Computer Modern Serif", "CMU Serif", Georgia, "Times New Roman", serif;
+      font-size: 12pt;
+      line-height: 1.65;
+      color: #111;
+      padding: 40px 16px 80px;
+    }
+
+    /* ── Canvas background ── */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .paper {
+      position: relative;
+      z-index: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      background: transparent;
+      padding: 64px 72px;
+    }
+
+    /* ── Title ── */
+    .paper-title {
+      font-family: "Computer Modern Serif", "CMU Serif", Georgia, serif;
+      font-size: 20pt;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: 22px;
+      color: #e8e3dd;
+    }
+
+    /* ── Authors ── */
+    .authors {
+      text-align: center;
+      font-size: 12pt;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #e8e3dd;
+    }
+
+    .affiliations {
+      text-align: center;
+      font-size: 9pt;
+      font-style: italic;
+      color: #8a8580;
+      line-height: 1.9;
+      margin-bottom: 32px;
+    }
+
+    /* ── Abstract ── */
+    .abstract {
+      font-size: 10.5pt;
+      text-align: justify;
+      margin-bottom: 10px;
+      color: #c8c3bd;
+    }
+
+    .abstract-label {
+      font-weight: bold;
+      font-style: italic;
+      color: #e8e3dd;
+    }
+
+    .keywords {
+      font-size: 10pt;
+      font-style: italic;
+      text-align: center;
+      margin-bottom: 30px;
+      color: #8a8580;
+    }
+
+    /* ── Section headings ── */
+    .section-heading {
+      font-size: 11pt;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 28px 0 12px;
+      color: #e8e3dd;
+    }
+
+    .intro-body {
+      font-size: 11pt;
+      text-align: justify;
+      margin-bottom: 6px;
+      line-height: 1.65;
+      color: #c8c3bd;
+    }
+
+    /* ── Link cards ── */
+    .link-section {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(190, 160, 255, 0.18);
+      border-radius: 4px;
+      background: rgba(190, 160, 255, 0.04);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+      cursor: pointer;
+    }
+
+    .link-section:hover,
+    .link-section:focus-visible,
+    .link-section:active {
+      outline: none;
+      border-color: rgba(190, 160, 255, 0.55);
+      background: rgba(190, 160, 255, 0.08);
+      box-shadow: 0 0 24px rgba(190, 160, 255, 0.08), 0 0 60px rgba(190, 160, 255, 0.04);
+    }
+
+    /* platform name row: icon + name + arrow */
+    .subsec-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15pt;
+      font-style: italic;
+      margin-bottom: 6px;
+      color: #e8e3dd;
+    }
+
+    .subsec-heading svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      opacity: 0.65;
+      transition: opacity 0.25s ease;
+    }
+
+    .link-section:hover .subsec-heading svg,
+    .link-section:active .subsec-heading svg {
+      opacity: 1;
+    }
+
+    .subsec-name {
+      flex: 1;
+    }
+
+    .arrow {
+      font-style: normal;
+      font-size: 10pt;
+      color: rgba(190, 160, 255, 0.35);
+      transition: color 0.25s ease, transform 0.25s ease;
+      display: inline-block;
+    }
+
+    .link-section:hover .arrow,
+    .link-section:active .arrow {
+      color: rgba(190, 160, 255, 0.9);
+      transform: translateX(3px);
+    }
+
+    /* platform descriptor */
+    .platform-desc {
+      font-size: 9.5pt;
+      color: #6a6560;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    /* equation row */
+    .eq-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .eq-text {
+      font-family: "Computer Modern Typewriter", "CMU Typewriter Text", "Courier New", monospace;
+      font-size: 11pt;
+      color: #c8c3bd;
+      transition: color 0.28s ease, text-shadow 0.28s ease;
+      line-height: 1.8;
+    }
+
+    .eq-num {
+      font-size: 10.5pt;
+      color: #5a5560;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* hover glow on equations */
+    .link-section:hover .eq-text,
+    .link-section:focus-visible .eq-text,
+    .link-section:active .eq-text {
+      color: #fff;
+      text-shadow:
+        0 0 10px rgba(190, 160, 255, 0.9),
+        0 0 30px rgba(190, 160, 255, 0.5),
+        0 0 70px rgba(190, 160, 255, 0.25);
+    }
+
+    /* variable definitions */
+    .var-def {
+      font-size: 7.5pt;
+      color: #6a6575;
+      font-style: italic;
+      margin-top: 4px;
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Footer ── */
+    .paper-footer {
+      text-align: center;
+      font-size: 9pt;
+      color: #3a3840;
+      font-style: italic;
+      margin-top: 28px;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 560px) {
+      .paper {
+        padding: 36px 20px 40px;
+      }
+      .paper-title {
+        font-size: 15pt;
+      }
+      .eq-text {
+        font-size: 9.5pt;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <div class="paper">
+
+    <h1 class="paper-title">Autumn Awbrey's Access Nodes</h1>
+
+    <div class="authors">
+      Autumn Awbrey<sup>1</sup>, Autumn Awbrey<sup>2</sup>, Autumn Awbrey<sup>3</sup>
+    </div>
+    <div class="affiliations">
+      <sup>1</sup> Artist, Department of Universe<br>
+      <sup>2</sup> Composer, Department of Music Theory, Los Angeles<br>
+      <sup>3</sup> Astrophysics, Department of Astronomy, UC Berkeley
+    </div>
+
+    <p class="abstract">
+      <span class="abstract-label">Abstract</span>—This presents a comprehensive overview of all which ways and wheres to connect with my music!
+    </p>
+
+    <p class="keywords">
+      <em>Keywords</em>—Spotify, apple, youtube, literally everywhere
+    </p>
+
+    <div class="section-heading">I. &nbsp; Introduction</div>
+
+    <p class="intro-body">
+      hi! im autumn, my background is in physics but i am absolutely obsessed with making music, so here we are. below is where you can find me or message me. if your specific access point is not included, look up my name on where you listen to music. just don't forget the "w" in my last name, dont worry ppl do it all the time
+    </p>
+
+    <div class="section-heading" style="margin-top: 28px;">II. &nbsp; Access Points</div>
+
+    <!-- 1. Spotify -->
+    <a class="link-section" href="https://open.spotify.com/artist/5k79YlhFFFEa4PsK6FYI6l?si=oUf_gd63TNK_1Ph8v-_aUw" target="_blank" rel="noopener noreferrer">
+      <div class="subsec-heading">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.516 17.333c-.215.35-.676.46-1.026.246-2.809-1.716-6.344-2.104-10.508-1.153-.4.092-.8-.155-.892-.554-.092-.4.155-.8.554-.892 4.555-1.041 8.461-.593 11.62 1.328.352.215.46.677.252 1.025zm1.472-3.272c-.27.437-.845.574-1.282.305-3.214-1.976-8.113-2.548-11.914-1.394-.493.148-1.013-.13-1.163-.622-.147-.493.131-1.012.623-1.162 4.344-1.317 9.745-.679 13.43 1.59.438.27.576.846.306 1.283zm.127-3.408c-3.855-2.29-10.215-2.5-13.895-1.382-.591.18-1.216-.155-1.395-.746-.18-.591.155-1.216.746-1.395 4.228-1.284 11.254-1.036 15.694 1.6.532.316.708 1.003.391 1.534-.315.532-1.003.707-1.541.389z"/></svg>
+        <span class="subsec-name">&nbsp;Spotify</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="platform-desc">Wave equation</div>
+      <div class="eq-row">
+        <span class="eq-text">&psi;(x, t) = A sin(kx &minus; &omega;t)</span>
+        <span class="eq-num">(1)</span>
+      </div>
+      <div class="var-def">where &psi; = displacement &middot; A = amplitude &middot; k = wavenumber &middot; x = position &middot; &omega; = angular frequency &middot; t = time</div>
+    </a>
+
+    <!-- 2. Apple Music -->
+    <a class="link-section" href="https://music.apple.com/us/artist/autumn-awbrey/1711208952" target="_blank" rel="noopener noreferrer">
+      <div class="subsec-heading">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.952 1.651a.75.75 0 0 1 .298.599V16.303a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.403-4.909l2.311-.66a1.5 1.5 0 0 0 1.088-1.442V6.994l-9 2.572v9.737a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.402-4.909l2.31-.66a1.5 1.5 0 0 0 1.088-1.442V5.25a.75.75 0 0 1 .544-.721l10.5-3a.75.75 0 0 1 .658.122Z"/></svg>
+        <span class="subsec-name">&nbsp;Apple Music</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="platform-desc">Fourier decomposition</div>
+      <div class="eq-row">
+        <span class="eq-text">&Fscr;{f}(&xi;) = &int; f(t) e<sup>&minus;2&pi;i&xi;t</sup> dt</span>
+        <span class="eq-num">(2)</span>
+      </div>
+      <div class="var-def">where &Fscr; = Fourier operator &middot; f(t) = time-domain signal &middot; &xi; = frequency variable &middot; i = imaginary unit &middot; t = time</div>
+    </a>
+
+    <!-- 3. TikTok -->
+    <a class="link-section" href="https://www.tiktok.com/@autumnawbrey" target="_blank" rel="noopener noreferrer">
+      <div class="subsec-heading">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+        <span class="subsec-name">&nbsp;TikTok</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="platform-desc">Logistic growth </div>
+      <div class="eq-row">
+        <span class="eq-text">N(t) = K / (1 + e<sup>&minus;r(t&minus;t<sub>0</sub>)</sup>)</span>
+        <span class="eq-num">(3)</span>
+      </div>
+      <div class="var-def">where N(t) = spread at time t &middot; K = maximum reach &middot; r = growth rate &middot; t<sub>0</sub> = time of maximum growth rate</div>
+    </a>
+
+    <!-- 4. Instagram -->
+    <a class="link-section" href="https://www.instagram.com/foreverautumnn" target="_blank" rel="noopener noreferrer">
+      <div class="subsec-heading">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        <span class="subsec-name">&nbsp;Instagram</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="platform-desc">Laplacian of an image</div>
+      <div class="eq-row">
+        <span class="eq-text">&nabla;<sup>2</sup>I(x,y) = 0</span>
+        <span class="eq-num">(4)</span>
+      </div>
+      <div class="var-def">where &nabla;<sup>2</sup> = Laplacian operator &middot; I(x,y) = image intensity at pixel (x,y) &middot; 0 = smooth uniform region</div>
+    </a>
+
+    <!-- 5. Tidal -->
+    <a class="link-section" href="https://tidal.com/artist/42785948/u" target="_blank" rel="noopener noreferrer">
+      <div class="subsec-heading">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.012 3.992L8.008 7.996 4.004 3.992 0 7.996l4.004 4.004 4.004-4.004 4.004 4.004 4.004-4.004zM8.008 16.004l-4.004-4.004L0 16.004 4.004 20.008l4.004-4.004 4.004 4.004 4.004-4.004-4.004-4.004zm8.008-8.008l4.004 4.004 3.98-3.98v-.024L20.016 4l-4.004 4.004 4.004 4.004 4.004-4.004z"/></svg>
+        <span class="subsec-name">&nbsp;Tidal</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="platform-desc">Sound intensity </div>
+      <div class="eq-row">
+        <span class="eq-text">I = 2&pi;<sup>2</sup>&nu;<sup>2</sup>&delta;<sup>2</sup>&rho;c</span>
+        <span class="eq-num">(5)</span>
+      </div>
+      <div class="var-def">where I = intensity &middot; &nu; = frequency &middot; &delta; = displacement amplitude &middot; &rho; = medium density &middot; c = speed of sound</div>
+    </a>
+
+    <!-- 4. YouTube Music -->
+    <a class="link-section" href="https://www.youtube.com/channel/UCU3PI6KPHoEYvqKJVD73Dvw" target="_blank" rel="noopener noreferrer">
+      <div class="subsec-heading">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.376 0 0 5.376 0 12s5.376 12 12 12 12-5.376 12-12S18.624 0 12 0zm0 19.104c-3.924 0-7.104-3.18-7.104-7.104S8.076 4.896 12 4.896s7.104 3.18 7.104 7.104-3.18 7.104-7.104 7.104zm0-13.332c-3.432 0-6.228 2.796-6.228 6.228S8.568 18.228 12 18.228s6.228-2.796 6.228-6.228S15.432 5.772 12 5.772zM9.684 15.216V8.784L15.816 12l-6.132 3.216z"/></svg>
+        <span class="subsec-name">&nbsp;YouTube Music</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="platform-desc">Exponential growth</div>
+      <div class="eq-row">
+        <span class="eq-text">N(t) = N<sub>0</sub> &middot; e<sup>rt</sup></span>
+        <span class="eq-num">(6)</span>
+      </div>
+      <div class="var-def">where N(t) = count at time t &middot; N&#8320; = initial count &middot; r = growth rate &middot; e = Euler's number &middot; t = time</div>
+    </a>
+
+    <!-- 5. Amazon Music -->
+    <a class="link-section" href="https://music.amazon.in/artists/B0CKTMZTCK/autumn-awbrey?marketplaceId=A21TJRUUN4KGV&musicTerritory=IN&ref=dm_sh_b0WmBzrlw6NL97yd6pGrhqm7W" target="_blank" rel="noopener noreferrer">
+      <div class="subsec-heading">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.958 10.09c0 1.232.03 2.256-.59 3.347-.502.891-1.301 1.438-2.186 1.438-1.214 0-1.922-.924-1.922-2.292 0-2.692 2.415-3.182 4.698-3.182v.689zm3.186 7.705c-.209.189-.512.201-.748.076-1.052-.874-1.239-1.279-1.816-2.112-1.736 1.77-2.962 2.299-5.21 2.299-2.66 0-4.733-1.641-4.733-4.925 0-2.565 1.391-4.309 3.37-5.164 1.715-.754 4.11-.891 5.942-1.095v-.41c0-.753.06-1.642-.384-2.294-.384-.579-1.128-.82-1.786-.82-1.214 0-2.298.624-2.562 1.917-.054.285-.266.567-.555.582l-3.106-.336c-.262-.059-.552-.271-.477-.673C5.817 2.033 8.81 1 11.5 1c1.38 0 3.186.368 4.278 1.413 1.381 1.292 1.249 3.015 1.249 4.891v4.432c0 1.332.552 1.917 1.072 2.637.181.256.221.562-.01.75l-2.945 2.662zM21.479 20.297c-2.33 1.722-5.71 2.637-8.617 2.637-4.075 0-7.743-1.507-10.516-4.012-.218-.197-.023-.466.239-.313 2.994 1.742 6.697 2.789 10.521 2.789 2.578 0 5.413-.535 8.024-1.645.394-.167.725.258.349.544zm.994-1.134c-.297-.381-1.967-.18-2.717-.091-.228.028-.263-.171-.058-.315 1.33-.935 3.514-.665 3.769-.352.256.315-.067 2.508-1.315 3.554-.192.161-.375.075-.29-.137.281-.703.911-2.279.611-2.659z"/></svg>
+        <span class="subsec-name">&nbsp;Amazon Music</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="platform-desc">Total energy of a wave</div>
+      <div class="eq-row">
+        <span class="eq-text">E<sub>total</sub> = &frac12;&mu;A<sup>2</sup>&omega;<sup>2</sup>&lambda;</span>
+        <span class="eq-num">(7)</span>
+      </div>
+      <div class="var-def">where A = amplitude &middot; &omega; = angular frequency &middot; &lambda; = wavelength &middot; &mu; = linear mass density</div>
+    </a>
+
+    <!-- 6. Contact -->
+    <a class="link-section" href="mailto:autumnawbrey1@gmail.com">
+      <div class="subsec-heading">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V6c0-1.103-.897-2-2-2zm0 2v.511l-8 6.223-8-6.222V6h16zM4 18V9.044l7.386 5.745a1 1 0 001.228 0L20 9.044 20.002 18H4z"/></svg>
+        <span class="subsec-name">&nbsp;Contact</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="platform-desc">Direct channel with zero information loss</div>
+      <div class="eq-row">
+        <span class="eq-text">P(received &nbsp;|&nbsp; sent) = 1</span>
+        <span class="eq-num">(8)</span>
+      </div>
+      <div class="var-def">where P = probability &middot; 1 = certainty</div>
+    </a>
+
+    <div class="paper-footer">&copy; 2026 Autumn Awbrey &nbsp;&middot;&nbsp; All rights reserved</div>
+
+  </div>
+
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    const NUM = 140;
+    const ATTRACT_RADIUS = 200;
+    const LINE_RADIUS = 120;
+
+    let mouse = { x: -9999, y: -9999 };
+    let particles = [];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    class Particle {
+      constructor() {
+        this.ox = Math.random() * canvas.width;
+        this.oy = Math.random() * canvas.height;
+        this.x = this.ox;
+        this.y = this.oy;
+        this.vx = 0;
+        this.vy = 0;
+        this.r = Math.random() * 1.4 + 0.4;
+        this.alpha = Math.random() * 0.45 + 0.15;
+      }
+
+      update() {
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < ATTRACT_RADIUS && dist > 0) {
+          const force = ((ATTRACT_RADIUS - dist) / ATTRACT_RADIUS) * 0.9;
+          this.vx += (dx / dist) * force;
+          this.vy += (dy / dist) * force;
+        }
+
+        this.vx += (this.ox - this.x) * 0.006;
+        this.vy += (this.oy - this.y) * 0.006;
+        this.vx *= 0.88;
+        this.vy *= 0.88;
+        this.x += this.vx;
+        this.y += this.vy;
+      }
+
+      draw() {
+        const dx = mouse.x - this.x;
+        const dy = mouse.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const near = Math.max(0, 1 - dist / ATTRACT_RADIUS);
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r + near * 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(190, 160, 255, ${this.alpha + near * 0.55})`;
+        if (near > 0.45) {
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = 'rgba(190, 160, 255, 0.7)';
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function drawLines() {
+      for (let i = 0; i < particles.length; i++) {
+        const a = particles[i];
+        const dax = mouse.x - a.x;
+        const day = mouse.y - a.y;
+        const distA = Math.sqrt(dax * dax + day * day);
+
+        if (distA < LINE_RADIUS) {
+          const alpha = (1 - distA / LINE_RADIUS) * 0.25;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(mouse.x, mouse.y);
+          ctx.strokeStyle = `rgba(190, 160, 255, ${alpha})`;
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const b = particles[j];
+          const ddx = a.x - b.x;
+          const ddy = a.y - b.y;
+          const d = Math.sqrt(ddx * ddx + ddy * ddy);
+          if (d < 80) {
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(180, 150, 255, ${(1 - d / 80) * 0.12})`;
+            ctx.lineWidth = 0.4;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawLines();
+      for (const p of particles) {
+        p.update();
+        p.draw();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function init() {
+      resize();
+      particles = Array.from({ length: NUM }, () => new Particle());
+      animate();
+    }
+
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    window.addEventListener('touchmove', e => {
+      mouse.x = e.touches[0].clientX;
+      mouse.y = e.touches[0].clientY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      mouse.x = -9999;
+      mouse.y = -9999;
+    });
+
+    window.addEventListener('resize', () => {
+      resize();
+      particles = Array.from({ length: NUM }, () => new Particle());
+    });
+
+    init();
+  </script>
+</body>
+</html>
